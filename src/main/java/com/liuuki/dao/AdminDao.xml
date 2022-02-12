@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.liuuki.dao.AdminDao">
+
+<!--    &lt;!&ndash; 实体类属性与数据库的列的对应关系 &ndash;&gt;-->
+<!--    <resultMap type="com.liuuki.domain.Admin" id="admin">-->
+<!--        &lt;!&ndash;column代表数据库中的列名  property代表实体类的属性   javaType代表在java中的数据类型  jdbcType代表在数据库中的数据类型 &ndash;&gt;-->
+<!--        <result column="a_id" property="aId"/>-->
+<!--        <result column="a_name" property="aName"/>-->
+<!--        <result column="a_pass" property="aPass"/>-->
+<!--    </resultMap>-->
+
+    <select id="getNameByName" resultType="com.liuuki.domain.Admin">
+        select aId from admin where aName=#{name}
+    </select>
+
+    <select id="getPwdByPwd" resultType="com.liuuki.domain.Admin">
+        select aName from admin where aName=#{name} and aPass=#{pwd}
+    </select>
+
+</mapper>
