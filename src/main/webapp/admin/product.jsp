@@ -6,6 +6,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <%
+        String path = request.getContextPath();
+        String basepath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + path + "/";
+    %>
+    <base href="<%=basepath%>"/>
     <meta charset="UTF-8">
 
     <script type="text/javascript">
@@ -16,14 +21,15 @@
 
     <c:remove var="msg"></c:remove>
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/bootstrap.css"/>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/bright.css"/>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/addBook.css"/>
-    <script type="text/javascript" src="${pageContext.request.contextPath}/js/jquery-3.3.1.js"></script>
-    <script type="text/javascript" src="${pageContext.request.contextPath}/js/bootstrap.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.css"/>
+    <link rel="stylesheet" href="css/bright.css"/>
+    <link rel="stylesheet" href="css/addBook.css"/>
+    <script type="text/javascript" src="js/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
     <title></title>
 </head>
 <script type="text/javascript">
+
     function allClick() {
         //取得全选复选框的选中未选 中状态
         var ischeck=$("#all").prop("checked");
@@ -73,12 +79,12 @@
 
                 <div id="top">
                     <input type="checkbox" id="all" onclick="allClick()" style="margin-left: 50px">&nbsp;&nbsp;全选
-                    <a href="${pageContext.request.contextPath}/admin/addproduct.jsp">
+                    <a href="admin/addproduct.jsp">
 
-                        <input type="button" class="btn btn-warning" id="btn1"
+                        <input type="button" class="btn btn-warning" id="addBtn"
                                value="新增商品">
                     </a>
-                    <input type="button" class="btn btn-warning" id="btn1"
+                    <input type="button" class="btn btn-warning" id="deleteBtn"
                            value="批量删除" onclick="deleteBatch()">
                 </div>
                 <!--显示分页后的商品-->
@@ -100,16 +106,16 @@
                                 <td>${p.pContent}</td>
                                 <td>${p.pPrice}</td>
                                 <td><img width="55px" height="45px"
-                                         src="${pageContext.request.contextPath}/image_big/${p.pImage}"></td>
+                                         src="image_big/${p.pImage}"></td>
                                 <td>${p.pNumber}</td>
-                                    <%--<td><a href="${pageContext.request.contextPath}/admin/product?flag=delete&pid=${p.pId}" onclick="return confirm('确定删除吗？')">删除</a>--%>
-                                    <%--&nbsp;&nbsp;&nbsp;<a href="${pageContext.request.contextPath}/admin/product?flag=one&pid=${p.pId}">修改</a></td>--%>
+                                    <%--<td><a href="admin/product?flag=delete&pid=${p.pId}" onclick="return confirm('确定删除吗？')">删除</a>--%>
+                                    <%--&nbsp;&nbsp;&nbsp;<a href="admin/product?flag=one&pid=${p.pId}">修改</a></td>--%>
                                 <td>
                                     <button type="button" class="btn btn-info "
-                                            onclick="one(${p.pId},${info.pageNum})">编辑
+                                            onclick="goUpdate(${p.pId},${info.pageNum})">编辑
                                     </button>
                                     <button type="button" class="btn btn-warning" id="mydel"
-                                            onclick="del(${p.pId})">删除
+                                            onclick="del(${p.pId},'${p.pImage}',${info.pageNum})">删除
                                     </button>
                                 </td>
                             </tr>
@@ -121,7 +127,7 @@
                             <nav aria-label="..." style="text-align:center;">
                                 <ul class="pagination">
                                     <li>
-                                            <%--                                        <a href="${pageContext.request.contextPath}/prod/split.action?page=${info.prePage}" aria-label="Previous">--%>
+                                            <%--                                        <a href="prod/split.action?page=${info.prePage}" aria-label="Previous">--%>
                                         <a href="javascript:ajaxsplit(${info.prePage})" aria-label="Previous">
 
                                             <span aria-hidden="true">«</span></a>
@@ -129,20 +135,20 @@
                                     <c:forEach begin="1" end="${info.pages}" var="i">
                                         <c:if test="${info.pageNum==i}">
                                             <li>
-                                                    <%--                                                <a href="${pageContext.request.contextPath}/prod/split.action?page=${i}" style="background-color: grey">${i}</a>--%>
+                                                    <%--                                                <a href="prod/split.action?page=${i}" style="background-color: grey">${i}</a>--%>
                                                 <a href="javascript:ajaxsplit(${i})"
                                                    style="background-color: grey">${i}</a>
                                             </li>
                                         </c:if>
                                         <c:if test="${info.pageNum!=i}">
                                             <li>
-                                                    <%--                                                <a href="${pageContext.request.contextPath}/prod/split.action?page=${i}">${i}</a>--%>
+                                                    <%--                                                <a href="prod/split.action?page=${i}">${i}</a>--%>
                                                 <a href="javascript:ajaxsplit(${i})">${i}</a>
                                             </li>
                                         </c:if>
                                     </c:forEach>
                                     <li>
-                                        <%--  <a href="${pageContext.request.contextPath}/prod/split.action?page=1" aria-label="Next">--%>
+                                        <%--  <a href="prod/split.action?page=1" aria-label="Next">--%>
                                         <a href="javascript:ajaxsplit(${info.nextPage})" aria-label="Next">
                                             <span aria-hidden="true">»</span></a>
                                     </li>
@@ -200,35 +206,39 @@
                     });
 alert(str+"11111111");
                     //发送请求到服务器端
-                   // window.location="${pageContext.request.contextPath}/prod/deletebatch.action?str="+str;
+                   // window.location="prod/deletebatch.action?str="+str;
 
                 }
         }
     }
     //单个删除
-    function del(pid) {
+    function del(pId,pImage,page) {
+
         if (confirm("确定删除吗")) {
           //向服务器提交请求完成删除
-            window.location="${pageContext.request.contextPath}/prod/delete.action?pid="+pid;
+            alert(pId,pImage);
+            window.location="prod/deleteProductById.do?pId="+pId+"&pImage="+pImage+"&page="+pa;
         }
     }
 
-    function one(pid, ispage) {
-        location.href = "${pageContext.request.contextPath}/prod/one.action?pid=" + pid + "&page=" + ispage;
+    function goUpdate(pid, ispage) {
+        location.href = "prod/goUpdate.do?pId="+pid+"&page="+ispage;
     }
 </script>
+
 <!--分页的AJAX实现-->
 <script type="text/javascript">
     function ajaxsplit(page) {
         //异步ajax分页请求
         $.ajax({
-        url:"${pageContext.request.contextPath}/prod/ajaxsplit.action",
+        url:"prod/ajaxPageList.do",
             data:{"page":page},
             type:"post",
             success:function () {
                 //重新加载分页显示的组件table
                 //location.href---->http://localhost:8080/admin/login.action
-                $("#table").load("http://localhost:8080/admin/product.jsp #table");
+
+                $("#table").load("admin/product.jsp #table");
             }
         })
     };

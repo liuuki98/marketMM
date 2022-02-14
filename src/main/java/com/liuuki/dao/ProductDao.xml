@@ -4,5 +4,57 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.liuuki.dao.ProductDao">
 
+    <resultMap id="BaseResultMap" type="com.liuuki.domain.Product" >
+        <id column="p_id" property="pId" jdbcType="INTEGER" />
+        <result column="p_name" property="pName" jdbcType="VARCHAR" />
+        <result column="p_content" property="pContent" jdbcType="VARCHAR" />
+        <result column="p_price" property="pPrice" jdbcType="INTEGER" />
+        <result column="p_image" property="pImage" jdbcType="VARCHAR" />
+        <result column="p_number" property="pNumber" jdbcType="INTEGER" />
+        <result column="type_id" property="typeId" jdbcType="INTEGER" />
+        <result column="p_date" property="pDate" jdbcType="DATE" />
+    </resultMap>
+
+    <delete id="deleteProductById">
+        delete from product_info where p_id=#{pId}
+    </delete>
+
+  <update id="updateProduct" parameterType="com.liuuki.domain.Product">
+      update product_info set
+          p_name=#{pName},
+          p_content=#{pContent},
+          p_price=#{pPrice},
+          p_image=#{pImage},
+          p_number=#{pNumber},
+          type_id=#{typeId}
+        where p_id=#{pId}
+
+
+  </update>
+
+
+    <select id="splitPage" resultType="Product" resultMap="BaseResultMap">
+        select * from product_info order by p_id desc
+    </select>
+
+    <insert id="saveProduct" >
+        insert into product_info (
+            p_id,
+            p_name,
+            p_content,
+            p_price,
+            p_image,
+            p_number,
+            type_id,
+            p_date
+        )
+        values (
+                #{pId},#{pName},#{pContent},#{pPrice},#{pImage},#{pNumber},#{typeId},#{pDate}
+               );
+    </insert>
+
+    <select id="goUpdate" resultMap="BaseResultMap" resultType="Product">
+        select * from product_info where p_id=#{pId}
+    </select>
 
 </mapper>

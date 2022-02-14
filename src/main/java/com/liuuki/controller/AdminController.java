@@ -13,6 +13,13 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
+    /**
+     * 进行登录验证
+     * @param name 用户名
+     * @param pwd 密码
+     * @param model
+     * @return
+     */
     @RequestMapping("/login.do")
     public String login(String name, String pwd,  Model model){
         String i = adminService.login(name,pwd);
