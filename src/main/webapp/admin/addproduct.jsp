@@ -30,7 +30,6 @@
 				dataType: 'json',//返回值类型 一般设置为json
 				success: function(obj) //服务器成功响应处理函数
 				{
-					alert(obj);
 					$("#imgDiv").empty();  //清空原有数据
 					//创建img 标签对象
 					var imgObj = $("<img>");

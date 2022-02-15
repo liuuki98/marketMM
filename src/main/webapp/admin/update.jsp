@@ -34,9 +34,15 @@
 						},
 						dataType:"json",
 						type:"post",
-						success:function (data){
+						success:function (){
 							var page =$("#page").val();
-							window.location.href="prod/getProList.do?page="+page;
+							var pName="${con.pName}";
+							var typeId="${con.typeId}";
+							var lPrice="${con.lPrice}";
+							var hPrice="${con.hPrice}";
+							alert("prod/ListByConditon.do?page="+page+"&pName="+pName+"&typeId="+typeId+"&lPrice="+lPrice+"&hPrice="+hPrice);
+							location.href = "prod/ListByConditon.do?page="+page+"&pName="+pName+"&typeId="+typeId+"&lPrice="+lPrice+"&hPrice="+hPrice;
+
 						}
 
 					})

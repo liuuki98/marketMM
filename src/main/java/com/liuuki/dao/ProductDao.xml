@@ -15,6 +15,46 @@
         <result column="p_date" property="pDate" jdbcType="DATE" />
     </resultMap>
 
+    <select id="listByCondition" resultMap="BaseResultMap" resultType="Product" parameterType="com.liuuki.vo.Condition">
+        select * from product_info
+        <where>
+            <if test="pName!=null and pName!=''">
+                p_name like '%' #{pName} '%'
+            </if>
+            <if test="typeId!=null and typeId!=-1">
+                and type_id = #{typeId}
+            </if>
+            <if test="lPrice!=null and lPrice!=''">
+                and p_price &gt;=#{lPrice}
+            </if>
+            <if test="hPrice!=null and hPrice!=''">
+                and p_price &lt;= ${hPrice}
+            </if>
+        </where>
+        order by p_id desc
+    </select>
+
+    <select id="getPImages" resultType="String">
+        select p_image from product_info where p_id in
+        <foreach collection="array" item="pId" open="(" close=")" separator=",">
+            #{pId}
+        </foreach>
+    </select>
+
+    <delete id="deleteProductByIds">
+        delete from product_info where p_id in
+        <foreach collection="array" item="pId" open="(" close=")" separator=",">
+            #{pId}
+        </foreach>
+    </delete>
+
+    <select id="selectProductByIds"  resultType="int">
+        select count(*) from product_info where p_id in
+        <foreach collection="array" item="pId" open="(" close=")" separator=",">
+            #{pId}
+        </foreach>
+    </select>
+
     <delete id="deleteProductById">
         delete from product_info where p_id=#{pId}
     </delete>
@@ -28,8 +68,6 @@
           p_number=#{pNumber},
           type_id=#{typeId}
         where p_id=#{pId}
-
-
   </update>
 
 

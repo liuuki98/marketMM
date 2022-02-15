@@ -5,6 +5,8 @@ import com.github.pagehelper.PageInfo;
 import com.liuuki.domain.Product;
 import com.liuuki.service.ProductService;
 import com.liuuki.util.FileNameUtil;
+import com.liuuki.vo.Condition;
+import com.sun.org.apache.bcel.internal.generic.MONITORENTER;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.jws.WebParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -49,14 +52,23 @@ public class ProductController {
 
     @RequestMapping("/ajaxPageList.do")
     @ResponseBody
-    public void ajaxsplit(Integer page, HttpSession session){
-
-
-        System.out.println("ajaxPageList"+"+++++"+page);
-        PageInfo info = productService.splitPage(page, PAGE_SIZE);
+    public void ajaxsplit(Condition condition, HttpSession session){
+        System.out.println("ajaxPageList"+"+++++"+condition.getPage());
+        PageInfo info = productService.listByCondition(condition, PAGE_SIZE);
         session.setAttribute("info",info);
-        saveFileName = "";
+    }
 
+    @RequestMapping("ListByConditon.do")
+    public ModelAndView ListByConditon(Condition condition){
+        System.out.println("进入到条件分页:"+"\n"+condition.toString());
+
+        ModelAndView mv = new ModelAndView();
+        PageInfo info = productService.listByCondition(condition, PAGE_SIZE);
+        System.out.println("pageInfo.size:" + "\n" + info.getList().size());
+        mv.addObject("info",info);
+        mv.addObject("typeId",condition.getTypeId());
+        mv.setViewName("product");
+        return mv;
     }
 
     /**
@@ -116,12 +128,13 @@ public class ProductController {
     }
 
     @RequestMapping("/goUpdate.do")
-    public ModelAndView goUpdate(String pId,Integer page){
+    public ModelAndView goUpdate(String pId,Condition condition){
 
         Product product = productService.goUpdate(pId);
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.addObject("prod",product);
-        modelAndView.addObject("page",page);
+        modelAndView.addObject("con",condition);
+        modelAndView.addObject("page",condition.getPage());
         modelAndView.setViewName("update");
         return modelAndView;
     }
@@ -143,18 +156,18 @@ public class ProductController {
     }
 
     @RequestMapping("/deleteProductById.do")
-    public String deleteProductById(Integer pId,HttpServletRequest request,Integer page,String pImage) {
+    public String deleteProductById(Integer pId,HttpServletRequest request,String pImage,Condition condition) {
         String path = request.getServletContext().getRealPath("/image_big") + "/" + pImage;
 //        System.out.println(path);
-
+        System.out.println(condition.toString());
         boolean flag=productService.deleteProductById(pId);
         if (!flag) {
-            System.out.println("失败");
+//            System.out.println("失败");
             request.getSession().setAttribute("msg", "删除失败！");
         } else {
             File file = new File(path);
             // 如果文件路径所对应的文件存在，并且是一个文件，则直接删除
-            System.out.println(file.exists());
+//            System.out.println(file.exists());
             if (file.exists() && file.isFile()) {
                 file.delete();
 //                if (file.delete()) {
@@ -165,7 +178,33 @@ public class ProductController {
             }
             
         }
-        return "redirect:/prod/getProList.do?page=" + page;
+        //拼接请求路径，防止为空值造成的报错
+        String requestPath="";
+        if(condition.getpName()!=null){
+            requestPath += "&pName="+condition.getpName();
+        }
+        if(condition.getTypeId()!=null){
+            requestPath+="&typeId="+condition.getTypeId();
+        }
+        if(condition.getlPrice()!=null){
+            requestPath+="&lPrice="+condition.getlPrice();
+        }
+        if(condition.gethPrice()!=null){
+            requestPath+="&hPrice="+condition.gethPrice();
+        }
+
+        return "redirect:/prod/ListByConditon.do?page="+condition.getPage()+requestPath;
+    }
+
+    @RequestMapping("/deleteProductByIds")
+    @ResponseBody
+    public boolean deleteProductByIds(String pId,HttpServletRequest request){
+        String []pIds= pId.split(",");
+        String path = request.getServletContext().getRealPath("/image_big") + "/";
+        boolean flag=productService.deleteProductByIds(pIds,path);
+
+
+        return flag;
     }
 
 }

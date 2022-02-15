@@ -29,6 +29,26 @@
     <title></title>
 </head>
 <script type="text/javascript">
+    $(function (){
+        //条件查询
+        $("#select").click(function (){
+            $("#hiddenPName").val($("#pName").val());
+            $("#hiddenTypeId").val($("#typeId").val());
+            $("#hiddenLPrice").val($("#lPrice").val());
+            $("#hiddenHPrice").val($("#hPrice").val());
+            ajaxsplit(1);
+
+        });
+        //重置条件查询项，resetBtn的type=“reset”，且id不可为reset会冲突
+        $("#resetBtn").click(function (){
+            $("#hiddenPName").val("");
+            $("#hiddenTypeId").val("");
+            $("#hiddenLPrice").val("");
+            $("#hiddenHPrice").val("");
+            $("#myform")[0].reset();
+            ajaxsplit(1);
+        })
+    })
 
     function allClick() {
         //取得全选复选框的选中未选 中状态
@@ -52,23 +72,34 @@
             $("#all").prop("checked",false);
         }
     }
+
 </script>
 <body>
+<input type="hidden" id="hiddenPage" value="${info.pageNum}">
+<input type="hidden" id="hiddenPName" >
+<input type="hidden" id="hiddenTypeId" >
+<input type="hidden" id="hiddenLPrice" >
+<input type="hidden" id="hiddenHPrice" >
 <div id="brall">
     <div id="nav">
         <p>商品管理>商品列表</p>
     </div>
     <div id="condition" style="text-align: center">
         <form id="myform">
-            商品名称：<input name="pname" id="pname">&nbsp;&nbsp;&nbsp;
-            商品类型：<select name="typeid" id="typeid">
+            商品名称：<input name="pName" id="pName">&nbsp;&nbsp;&nbsp;
+            商品类型：<select name="typeId" id="typeId">
             <option value="-1">请选择</option>
             <c:forEach items="${ptlist}" var="pt">
-                <option value="${pt.typeId}">${pt.typeName}</option>
+                <option value="${pt.typeId}"
+                        <c:if test="${pt.typeId==typeId}">
+                            selected="selected"
+                        </c:if>
+                >${pt.typeName}</option>
             </c:forEach>
         </select>&nbsp;&nbsp;&nbsp;
-            价格：<input name="lprice" id="lprice">-<input name="hprice" id="hprice">
-            <input type="button" value="查询" onclick="ajaxsplit(${info.pageNum})">
+            价格：<input name="lPrice" id="lPrice">-<input name="hPrice" id="hPrice">
+            <input type="button" value="查询" id="select">
+            <input type="reset" value="重置" id="resetBtn">
         </form>
     </div>
     <br>
@@ -188,26 +219,44 @@
     function deleteBatch() {
 
             //取得所有被选中删除商品的pid
-            var zhi=$("input[name=ck]:checked");
+            var pId=$("input[name=ck]:checked");
+            var page=$("#hiddenPage").val();
             var str="";
             var id="";
-            if(zhi.length==0){
+            if(pId.length==0){
                 alert("请选择将要删除的商品！");
             }else{
                 // 有选中的商品，则取出每个选 中商品的ID，拼提交的ID的数据
-                if(confirm("您确定删除"+zhi.length+"条商品吗？")){
+                if(confirm("您确定删除"+pId.length+"条商品吗？")){
                 //拼接ID
-                    $.each(zhi,function (index,item) {
+                    $.each(pId,function (index,item) {
 
-                        id=$(item).val(); //22 33
-                        alert(id);
+                        id=$(item).val();
                         if(id!=null)
-                            str += id+",";  //22,33,44
+                            str += id+",";
                     });
-alert(str+"11111111");
+                    $.ajax({
+                        url:"prod/deleteProductByIds.do",
+                        data:{
+                            "pId":str,
+                        },
+                        type:"post",
+                        dataType:"json",
+                        success:function (data){
+                            if(data){
+                                var pName=$("#hiddenPName").val().trim();
+                                var typeId=$("#hiddenTypeId").val().trim();
+                                var lPrice=$("#hiddenLPrice").val().trim();
+                                var hPrice=$("#hiddenHPrice").val().trim();
+                                window.location.href="prod/deleteProductById.do?&page="+page+"&pName="+pName+"&typeId="+typeId+"&lPrice="+lPrice+"&hPrice="+hPrice;
+                            }else {
+                                alert("删除失败！");
+
+                            }
+                        }
+                    })
                     //发送请求到服务器端
                    // window.location="prod/deletebatch.action?str="+str;
-
                 }
         }
     }
@@ -216,13 +265,20 @@ alert(str+"11111111");
 
         if (confirm("确定删除吗")) {
           //向服务器提交请求完成删除
-            alert(pId,pImage);
-            window.location="prod/deleteProductById.do?pId="+pId+"&pImage="+pImage+"&page="+pa;
+            var pName=$("#hiddenPName").val().trim();
+            var typeId=$("#hiddenTypeId").val().trim();
+            var lPrice=$("#hiddenLPrice").val().trim();
+            var hPrice=$("#hiddenHPrice").val().trim();
+            window.location.href="prod/deleteProductById.do?pId="+pId+"&pImage="+pImage+"&page="+page+"&pName="+pName+"&typeId="+typeId+"&lPrice="+lPrice+"&hPrice="+hPrice;
         }
     }
 
     function goUpdate(pid, ispage) {
-        location.href = "prod/goUpdate.do?pId="+pid+"&page="+ispage;
+        var pName=$("#hiddenPName").val().trim();
+        var typeId=$("#hiddenTypeId").val().trim();
+        var lPrice=$("#hiddenLPrice").val().trim();
+        var hPrice=$("#hiddenHPrice").val().trim();
+        location.href = "prod/goUpdate.do?pId="+pid+"&page="+ispage+"&pName="+pName+"&typeId="+typeId+"&lPrice="+lPrice+"&hPrice="+hPrice;
     }
 </script>
 
@@ -232,7 +288,13 @@ alert(str+"11111111");
         //异步ajax分页请求
         $.ajax({
         url:"prod/ajaxPageList.do",
-            data:{"page":page},
+            data:{
+                "page":page,
+                "pName":$("#hiddenPName").val().trim(),
+                "typeId":$("#hiddenTypeId").val().trim(),
+                "lPrice":$("#hiddenLPrice").val().trim(),
+                "hPrice":$("#hiddenHPrice").val().trim(),
+            },
             type:"post",
             success:function () {
                 //重新加载分页显示的组件table

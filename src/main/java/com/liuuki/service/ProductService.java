@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.liuuki.dao.ProductDao;
 import com.liuuki.domain.Product;
 import com.liuuki.domain.ProductType;
+import com.liuuki.vo.Condition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,4 +22,8 @@ public interface ProductService {
     boolean updateProduct(Product product);
 
     boolean deleteProductById(Integer pId);
+
+    boolean deleteProductByIds(String[] pIds,String path);
+
+    PageInfo listByCondition(Condition condition, int pageSize);
 }
